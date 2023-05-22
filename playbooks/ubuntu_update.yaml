@@ -1,0 +1,13 @@
+- name: Ubuntu Update
+  hosts: appservers
+  tasks:
+    - name: Update Ubuntu
+      become: true
+      apt:
+        upgrade: yes
+        update_cache: yes
+        autoremove: true
+      register: output
+    - debug:
+        var: output.stdout_lines
+

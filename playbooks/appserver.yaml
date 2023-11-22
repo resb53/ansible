@@ -1,0 +1,14 @@
+- name: Ubuntu Update
+  hosts: appservers
+  tasks:
+    - name: Update Ubuntu
+      become: true
+      apt:
+        upgrade: yes
+        update_cache: yes
+        autoremove: true
+    - name: Install podman
+      become: true
+      apt:
+        name: podman
+        state: present

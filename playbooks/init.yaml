@@ -19,13 +19,13 @@
     - name: Disable dynamic PAM MOTD
       ansible.builtin.lineinfile:
         path: '/etc/pam.d/sshd'
-        regexp: '^session\s+optional\s+pam_motd\.so\s+motd\S+'
+        regexp: '^(session\s+optional\s+pam_motd\.so\s+motd\S+)'
         line: '# \1'
         backrefs: true
     - name: Disable dynamic PAM updates
       ansible.builtin.lineinfile:
         path: '/etc/pam.d/sshd'
-        regexp: '^session\s+optional\s+pam_motd\.so\s+noupdate'
+        regexp: '^(session\s+optional\s+pam_motd\.so\s+noupdate)'
         line: '# \1'
         backrefs: true
     - name: Disable root SSH

@@ -1,5 +1,3 @@
-all:
-  children:
-    appservers:
-      hosts:
-        morphos.uk:
+appservers:
+  hosts:
+    morphos.uk:

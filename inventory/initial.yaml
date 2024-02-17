@@ -1,0 +1,8 @@
+appservers:
+  hosts:
+    morphos.uk:
+  vars:
+    ansible_port: 22
+    ansible_user: root
+    ansible_password: <password>
+

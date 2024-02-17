@@ -1,0 +1,10 @@
+- name: Initialise appserver
+  hosts: appservers
+  tasks:
+    - name: Add the user robert
+      ansible.builtin.user:
+        name: robert
+        password: '!'
+        shell: /bin/bash
+        append: true
+        groups: 'sudo'

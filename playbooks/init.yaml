@@ -1,0 +1,55 @@
+- name: Initialise appserver
+  hosts: appservers
+  tasks:
+    - name: Add the user robert
+      ansible.builtin.user:
+        name: robert
+        password: '!'
+        shell: /bin/bash
+        append: true
+        groups: 'sudo'
+    - name: Set authorized keys for SSH
+      ansible.posix.authorized_key:
+        user: robert
+        state: present
+        key: "{{ lookup('file', '/home/robert/.ssh/id_ed25519.pub') }}'"
+    - name: Disable apt_news
+      ansible.builtin.shell:
+        cmd: "pro config set apt_news=false"
+    - name: Disable dynamic PAM MOTD
+      ansible.builtin.lineinfile:
+        path: '/etc/pam.d/sshd'
+        regexp: '^session\s+optional\s+pam_motd\.so\s+motd\S+'
+        line: '# \1'
+        backrefs: true
+    - name: Disable dynamic PAM updates
+      ansible.builtin.lineinfile:
+        path: '/etc/pam.d/sshd'
+        regexp: '^session\s+optional\s+pam_motd\.so\s+noupdate'
+        line: '# \1'
+        backrefs: true
+    - name: Disable root SSH
+      ansible.builtin.lineinfile:
+        path: '/etc/ssh/sshd_config'
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin no'
+      notify: restart sshd
+    - name: Disable password based login
+      ansible.builtin.lineinfile:
+        path: '/etc/ssh/sshd_config'
+        regexp: '^PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+      notify: restart sshd
+    - name: Disallow access with empty passwords
+      ansible.builtin.lineinfile:
+        path: '/etc/ssh/sshd_config'
+        regexp: '^#PermitEmptyPasswords'
+        line: 'PermitEmptyPasswords no'
+      notify: restart sshd
+
+  handlers:
+  - name: restart sshd
+    service:
+      name: sshd
+      state: restarted
+      

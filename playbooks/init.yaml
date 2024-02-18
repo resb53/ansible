@@ -31,6 +31,22 @@
         regexp: '^(session\s+optional\s+pam_motd\.so\s+noupdate)'
         line: '# \1'
         backrefs: true
+    - name: Copy Encrypted SSL Certificate
+      ansible.builtin.copy:
+        src: morphos_uk.crt
+        dest: /etc/ssl/certs/morphos_uk.crt
+        owner: root
+        group: root
+        decrypt: yes
+        mode: 0644
+    - name: Copy Encrypted SSL Private Key
+      ansible.builtin.copy:
+        src: morphos_uk.key
+        dest: /etc/ssl/private/morphos_uk.key
+        owner: root
+        group: root
+        decrypt: yes
+        mode: 0400
     - name: Disable root SSH
       ansible.builtin.lineinfile:
         path: '/etc/ssh/sshd_config'

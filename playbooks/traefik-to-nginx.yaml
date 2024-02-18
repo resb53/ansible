@@ -1,0 +1,41 @@
+- name: Remove K3s Traefik and Install Nginx Ingress Controller
+  hosts: appservers
+  become: true
+  tasks:
+    - name: Disable Traefik
+      ansible.builtin.lineinfile:
+        path: '/etc/systemd/system/k3s.service'
+        regexp: '^(?!.*--disable=traefik)(ExecStart=\/usr\/local\/bin\/k3s server.+)$'
+        line: '\1 --disable=traefik'
+        backrefs: true
+    - name: Shutdown K3s
+      ansible.builtin.shell:
+        cmd: '/usr/local/bin/k3s-killall.sh'
+    - name: Reload daemons and restart K3s
+      ansible.builtin.systemd_service:
+        name: k3s
+        state: restarted
+        daemon_reload: true
+    - name: Get Helm Apt Key
+      ansible.builtin.shell:
+        cmd: 'curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null'
+    - name: Install apt-transport-https
+      ansible.builtin.apt:
+        name: apt-transport-https
+        state: latest
+    - name: Add Helm repo to Apt list
+      ansible.builtin.shell:
+        cmd: 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list'
+    - name: Install Helm
+      ansible.builtin.apt:
+        name: apt-transport-https
+        update_cache: true
+        state: latest
+    - name: Install Nginx Ingress Controller
+      kubernetes.core.helm:
+        name: ingress-nginx
+        chart_ref: ingress-nginx
+        chart_repo_url: 'https://kubernetes.github.io/ingress-nginx'
+        release_namespace: ingress-nginx
+        create_namespace: true
+        wait: true

@@ -16,10 +16,6 @@
         name: k3s
         state: restarted
         daemon_reload: true
-    - name: Pause to allow Traefik artifacts to be destroyed
-      # Better to wait till "app.kubernetes.io/instance=traefik-kube-system" objects have all disappeared?
-      ansible.builtin.pause:
-        seconds: 120
     - name: Get Helm Apt Key
       ansible.builtin.shell:
         cmd: 'curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null'
@@ -42,6 +38,14 @@
       ansible.builtin.file:
         path: /root/.kube/config
         mode: 0600
+    - name: Wait until Traefik artifacts have all been deleted
+      ansible.builtin.shell: |
+        while true
+        do
+        kubectl get all -A -l "app.kubernetes.io/instance=traefik-kube-system" | grep traefik && sleep 10 || exit 0
+        done
+      args:
+        executable: /bin/bash
     - name: Install Nginx Ingress Controller
       kubernetes.core.helm:
         name: ingress-nginx

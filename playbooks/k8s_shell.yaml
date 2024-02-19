@@ -1,0 +1,12 @@
+- name: K8s pod info
+  hosts: appservers
+  become: true
+  tasks:
+    - name: Wait until Traefik artifacts have all been deleted
+      ansible.builtin.shell: |
+        while true
+        do
+        kubectl get all -A -l "app.kubernetes.io/instance=traefik-kube-system" | grep traefik && sleep 10 || exit 0
+        done
+      args:
+        executable: /bin/bash

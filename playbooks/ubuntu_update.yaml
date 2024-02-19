@@ -3,7 +3,7 @@
   tasks:
     - name: Update Ubuntu
       become: true
-      apt:
+      ansible.builtin.apt:
         upgrade: yes
         update_cache: yes
         autoremove: true

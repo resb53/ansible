@@ -16,6 +16,10 @@
         name: k3s
         state: restarted
         daemon_reload: true
+    - name: Pause to allow Traefik artifacts to be destroyed
+      # Better to wait till "app.kubernetes.io/instance=traefik-kube-system" objects have all disappeared?
+      ansible.builtin.pause:
+        seconds: 120
     - name: Get Helm Apt Key
       ansible.builtin.shell:
         cmd: 'curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null'
@@ -25,12 +29,19 @@
         state: latest
     - name: Add Helm repo to Apt list
       ansible.builtin.shell:
-        cmd: 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list'
+        cmd: 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list'
     - name: Install Helm
       ansible.builtin.apt:
-        name: apt-transport-https
+        name: helm
         update_cache: true
         state: latest
+    - name: Create kube config for root
+      ansible.builtin.shell:
+        cmd: "kubectl config view --raw >> /root/.kube/config"
+    - name: Make kube config secure
+      ansible.builtin.file:
+        path: /root/.kube/config
+        mode: 0600
     - name: Install Nginx Ingress Controller
       kubernetes.core.helm:
         name: ingress-nginx

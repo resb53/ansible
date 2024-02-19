@@ -1,0 +1,11 @@
+- name: K8s pod info
+  hosts: appservers
+  tasks:
+    - name: Search for all Pods labelled app=web
+      kubernetes.core.k8s_info:
+        kind: Pod
+        label_selectors:
+          - app.kubernetes.io/instance=traefik-kube-system
+    - name: Print message
+      ansible.builtin.debug:
+        msg: Hello world

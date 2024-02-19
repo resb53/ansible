@@ -1,0 +1,58 @@
+- name: K8s pod info
+  hosts: appservers
+  become: true
+  tasks:
+    - name: Create /opt/foundry if not present
+      ansible.builtin.file:
+        path: /opt/foundry
+        state: directory
+        mode: 0755
+    - name: Create /opt/foundry/data if not present
+      ansible.builtin.file:
+        path: /opt/foundry/data
+        state: directory
+        mode: 0755
+    - name: Wipe any existing vtt
+      ansible.builtin.file:
+        path: /opt/foundry/vtt
+        state: absent
+    - name: Create fresh /opt/foundry/vtt
+      ansible.builtin.file:
+        path: /opt/foundry/vtt
+        state: directory
+        mode: 0755
+    - name: Install unzip
+      ansible.builtin.apt:
+        name: unzip
+        state: latest
+    - name: Copy and Extract Foundry VTT
+      ansible.builtin.unarchive:
+        src: /opt/foundry/FoundryVTT-11.315.zip
+        dest: /opt/foundry/vtt
+        owner: root
+        group: root
+    - name: Copy NodeJS Foundry container image
+      ansible.builtin.copy:
+        src: /opt/foundry/node-foundry.0.1-slim.tar
+        dest: /opt/foundry/node-foundry.0.1-slim.tar
+        owner: root
+        group: root
+        mode: 0644
+    - name: Push image to CRI-O if not present
+      ansible.builtin.shell: |
+        crictl images | grep docker.io/resb53/node-foundry || ctr i import /opt/foundry/node-foundry.0.1-slim.tar
+      args:
+        executable: /bin/bash
+    - name: Install pip for Python3
+      ansible.builtin.apt:
+        name: python3-pip
+        state: latest
+    - name: Install Python3 kubernetes package
+      ansible.builtin.pip:
+        name: kubernetes
+    - name: Create Foundry k8s namespace
+      kubernetes.core.k8s:
+        name: foundry
+        api_version: v1
+        kind: Namespace
+        state: present

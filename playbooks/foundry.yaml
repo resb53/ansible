@@ -56,3 +56,15 @@
         api_version: v1
         kind: Namespace
         state: present
+    - name: Deploy Foundry Service
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', 'foundry-vtt.yaml') | from_yaml_all }}"
+    - name: Deploy Foundry Secrets
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', 'foundry-secret.yaml') | from_yaml }}"
+    - name: Deploy Foundry Ingress
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', 'foundry-ingress.yaml') | from_yaml }}"

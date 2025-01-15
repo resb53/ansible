@@ -52,23 +52,23 @@
         path: '/etc/ssh/sshd_config'
         regexp: '^PermitRootLogin'
         line: 'PermitRootLogin no'
-      notify: restart sshd
+      notify: restart ssh
     - name: Disable password based login
       ansible.builtin.lineinfile:
         path: '/etc/ssh/sshd_config'
         regexp: '^PasswordAuthentication'
         line: 'PasswordAuthentication no'
-      notify: restart sshd
+      notify: restart ssh
     - name: Disallow access with empty passwords
       ansible.builtin.lineinfile:
         path: '/etc/ssh/sshd_config'
         regexp: '^#PermitEmptyPasswords'
         line: 'PermitEmptyPasswords no'
-      notify: restart sshd
+      notify: restart ssh
 
   handlers:
-  - name: restart sshd
+  - name: restart ssh
     service:
-      name: sshd
+      name: ssh
       state: restarted
       

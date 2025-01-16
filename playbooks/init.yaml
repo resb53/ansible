@@ -1,5 +1,6 @@
 - name: Initialise appserver
   hosts: appservers
+  become: true
   tasks:
     - name: Add the user robert
       ansible.builtin.user:
@@ -31,6 +32,15 @@
         regexp: '^(session\s+optional\s+pam_motd\.so\s+noupdate)'
         line: '# \1'
         backrefs: true
+    - name: Update hostname
+      ansible.builtin.hostname:
+        name: morphos.uk
+    - name: Add host to /etc/hosts
+      ansible.builtin.lineinfile:
+        path: '/etc/hosts'
+        insertafter: '^127.0.0.1 localhost$'
+        firstmatch: true
+        line: '127.0.0.1 morphos.uk'
     - name: Copy Encrypted SSL Certificate
       ansible.builtin.copy:
         src: morphos_uk.crt

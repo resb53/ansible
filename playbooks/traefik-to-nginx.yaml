@@ -38,6 +38,29 @@
         name: helm
         update_cache: true
         state: latest
+    - name: Create /opt/nginx directory if not present
+      ansible.builtin.file:
+        path: /opt/nginx
+        state: directory
+        mode: 0755
+    - name: Copy Nginx values file
+      ansible.builtin.copy:
+        src: ingress-nginx-values.yaml
+        dest: /opt/nginx/values.yaml
+        owner: root
+        group: root
+        decrypt: yes
+        mode: 0644
+    - name: Create Nginx Ingress Namespace
+      kubernetes.core.k8s:
+        name: ingress-nginx
+        api_version: v1
+        kind: Namespace
+        state: present
+    - name: Deploy Wildcard TLS Secret
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', './default-secret.yaml') | from_yaml }}"
     - name: Wait until Traefik artifacts have all been deleted
       ansible.builtin.shell: |
         while true
@@ -52,6 +75,7 @@
         chart_ref: ingress-nginx
         chart_repo_url: 'https://kubernetes.github.io/ingress-nginx'
         release_namespace: ingress-nginx
-        create_namespace: true
+        values_files:
+          - /opt/nginx/values.yaml
         state: present
         wait: true

@@ -27,7 +27,7 @@
         state: latest
     - name: Copy and Extract Foundry VTT
       ansible.builtin.unarchive:
-        src: /opt/foundry/FoundryVTT-11.315.zip
+        src: /opt/foundry/FoundryVTT-12.331.zip
         dest: /opt/foundry/vtt
         owner: root
         group: root
@@ -43,13 +43,10 @@
         crictl images | grep docker.io/resb53/node-foundry || ctr i import /opt/foundry/node-foundry.0.1-slim.tar
       args:
         executable: /bin/bash
-    - name: Install pip for Python3
-      ansible.builtin.apt:
-        name: python3-pip
-        state: latest
     - name: Install Python3 kubernetes package
-      ansible.builtin.pip:
-        name: kubernetes
+      ansible.builtin.apt:
+        name: python3-kubernetes
+        state: latest
     - name: Create Foundry k8s namespace
       kubernetes.core.k8s:
         name: foundry
@@ -59,12 +56,12 @@
     - name: Deploy Foundry Service
       kubernetes.core.k8s:
         state: present
-        definition: "{{ lookup('file', 'foundry-vtt.yaml') | from_yaml_all }}"
+        definition: "{{ lookup('file', '/home/robert/git/foundry/foundry/foundry-vtt.yaml') | from_yaml_all }}"
     - name: Deploy Foundry Secrets
       kubernetes.core.k8s:
         state: present
-        definition: "{{ lookup('file', 'foundry-secret.yaml') | from_yaml }}"
+        definition: "{{ lookup('file', '/home/robert/git/foundry/foundry/foundry-secret.yaml') | from_yaml }}"
     - name: Deploy Foundry Ingress
       kubernetes.core.k8s:
         state: present
-        definition: "{{ lookup('file', 'foundry-ingress.yaml') | from_yaml }}"
+        definition: "{{ lookup('file', '/home/robert/git/foundry/foundry/foundry-ingress.yaml') | from_yaml }}"
